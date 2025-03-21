@@ -27,7 +27,6 @@ std::vector<uint32_t> LongNum::addVectors(const std::vector<uint32_t> &a,
     return result;
 }
 
-
 std::vector<uint32_t> LongNum::subVectors(const std::vector<uint32_t> &a,
                                           const std::vector<uint32_t> &b)
 {
@@ -49,15 +48,12 @@ std::vector<uint32_t> LongNum::subVectors(const std::vector<uint32_t> &a,
     return result;
 }
 
-// "а меньше чем b ?"
-
 bool LongNum::lessVectors(const std::vector<uint32_t> &a,
                           const std::vector<uint32_t> &b)
 {
     if (a.size() != b.size()) {
         return (a.size() < b.size());
     }
-
     for (size_t i = a.size(); i > 0; i--) {
         if (a[i-1] < b[i-1]) return true;
         if (a[i-1] > b[i-1]) return false;
@@ -83,7 +79,6 @@ std::vector<uint32_t> LongNum::multiplyVectors(const std::vector<uint32_t> &a,
     return result;
 }
 
-
 std::pair<std::vector<uint32_t>, std::vector<uint32_t>> 
 LongNum::divideVectors(const std::vector<uint32_t> &a, 
                        const std::vector<uint32_t> &b)
@@ -96,7 +91,6 @@ LongNum::divideVectors(const std::vector<uint32_t> &a,
     }
     std::vector<uint32_t> quotient, remainder;
     remainder = a;
-    // O(n^2) :
     quotient.clear();
     quotient.push_back(0);
     while (!lessVectors(remainder, b)) {
@@ -120,9 +114,6 @@ LongNum::divideVectors(const std::vector<uint32_t> &a,
     }
     return { quotient, remainder };
 }
-
-// Умножаем 32 битное число на 10 (Необходимо при построении из десятичных цифр).
-// возвращаем копию
 
 std::vector<uint32_t> multiplyBy10_impl(const std::vector<uint32_t> &vec) {
     std::vector<uint32_t> result = vec;
@@ -149,7 +140,6 @@ std::string LongNum::bigNumberToDecimalString(const std::vector<uint32_t> &digit
     }
     std::vector<uint32_t> temp = digits;
 
-    // Функция divideBy10
     auto divideBy10 = [&](std::vector<uint32_t> &vec) -> uint64_t {
         uint64_t remainder = 0;
         for (size_t i = vec.size(); i > 0; i--) {
@@ -193,6 +183,7 @@ void LongNum::clean_zeros() {
 }
 
 // --------------------------------------------------------------------------
+
 LongNum::LongNum()
     : sign(false), fraction(64), decimalFractionCount(0)
 {
@@ -200,7 +191,6 @@ LongNum::LongNum()
     _digits.push_back(0);
 }
 
-// --------------------------------------------------------------------------
 LongNum::LongNum(const std::string &str)
     : sign(false), fraction(64), decimalFractionCount(0)
 {
@@ -228,7 +218,6 @@ LongNum::LongNum(const std::string &str)
         intPart = str.substr(pos, dotPos - pos);
         fracPart = str.substr(dotPos + 1);
     }
-    // Удалим ведущие нули в intPart
     while (intPart.size() > 1 && intPart[0] == '0') {
         intPart.erase(intPart.begin());
     }
@@ -283,7 +272,6 @@ LongNum::LongNum(const std::string &str)
         }
     }
 
-    // Объединяем
     std::vector<uint32_t> shiftedInt = bigInt;
     for (size_t i = 0; i < decimalFractionCount; i++) {
         shiftedInt = multiplyBy10_impl(shiftedInt);
@@ -294,36 +282,10 @@ LongNum::LongNum(const std::string &str)
     clean_zeros();
 }
 
-// Конструктор копирования
-LongNum::LongNum(const LongNum &other)
-{
-    _digits = other._digits;
-    sign = other.sign;
-    fraction = other.fraction;
-    decimalFractionCount = other.decimalFractionCount;
-}
-
-// Оператор присваивания
-LongNum &LongNum::operator=(const LongNum &other)
-{
-    if (this == &other) {
-        return *this;
-    }
-    _digits = other._digits;
-    sign = other.sign;
-    fraction = other.fraction;
-    decimalFractionCount = other.decimalFractionCount;
-    return *this;
-}
-
-
 std::string LongNum::toString() const
 {
     bool isZero = (_digits.size() == 1 && _digits[0] == 0);
-
     std::string decStr = bigNumberToDecimalString(_digits);
-
-    // Вставим знак
     if (sign && !isZero) {
         decStr.insert(decStr.begin(), '-');
     }
@@ -360,8 +322,6 @@ std::string LongNum::toString() const
     }
 }
 
-// Оператор +
-
 LongNum operator+(const LongNum &lhs, const LongNum &rhs)
 {
     LongNum result;
@@ -369,7 +329,6 @@ LongNum operator+(const LongNum &lhs, const LongNum &rhs)
         result.sign = lhs.sign;
         result._digits = LongNum::addVectors(lhs._digits, rhs._digits);
     } else {
-
         bool lhsLess = LongNum::lessVectors(lhs._digits, rhs._digits);
         if (lhsLess) {
             result._digits = LongNum::subVectors(rhs._digits, lhs._digits);
@@ -398,7 +357,6 @@ LongNum operator*(const LongNum &lhs, const LongNum &rhs)
     LongNum result;
     result.sign = (lhs.sign != rhs.sign);
     result._digits = LongNum::multiplyVectors(lhs._digits, rhs._digits);
-
     result.decimalFractionCount = lhs.decimalFractionCount + rhs.decimalFractionCount;
     result.fraction = lhs.fraction + rhs.fraction;
     result.clean_zeros();
@@ -414,7 +372,7 @@ LongNum operator/(const LongNum &lhs, const LongNum &rhs)
     result.sign = (lhs.sign != rhs.sign);
     auto divRes = LongNum::divideVectors(lhs._digits, rhs._digits);
     std::vector<uint32_t> quotient = divRes.first;
-    std::vector<uint32_t> remainder = divRes.second; // Остаток
+    std::vector<uint32_t> remainder = divRes.second;
     result._digits = quotient;
     result.clean_zeros();
     bool remainderIsZero = (remainder.size() == 1 && remainder[0] == 0);
@@ -424,14 +382,10 @@ LongNum operator/(const LongNum &lhs, const LongNum &rhs)
         return result;
     }
     const size_t MAX_FRACTION_DIGITS = 40;
-
     std::string fractionDigits;
     fractionDigits.reserve(MAX_FRACTION_DIGITS);
-
     for (size_t i = 0; i < MAX_FRACTION_DIGITS; i++) {
-        {
-            remainder = multiplyBy10_impl(remainder);
-        }
+        remainder = multiplyBy10_impl(remainder);
         auto dres = LongNum::divideVectors(remainder, rhs._digits);
         std::vector<uint32_t> digitVec = dres.first;
         remainder = dres.second;
@@ -439,13 +393,10 @@ LongNum operator/(const LongNum &lhs, const LongNum &rhs)
         if (!digitVec.empty()) {
             d = digitVec[0];
         }
-        // -------------- test --------------
         if (d > 9) {
             d = 9; 
         }
-
         fractionDigits.push_back(char('0' + (d % 10)));
-
         bool zeroRem = (remainder.size() == 1 && remainder[0] == 0);
         if (zeroRem) {
             break;
@@ -461,15 +412,11 @@ LongNum operator/(const LongNum &lhs, const LongNum &rhs)
     fullStr.push_back('.');
     fullStr += fractionDigits;
     LongNum finalNum(fullStr);
-
     finalNum.sign = result.sign;
     finalNum.decimalFractionCount = fractionDigits.size();
     finalNum.fraction = std::max(lhs.fraction, rhs.fraction);
-    
     return finalNum;
 }
-
-
 
 bool operator==(const LongNum &lhs, const LongNum &rhs)
 {

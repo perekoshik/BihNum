@@ -1,21 +1,18 @@
-# Компилятор и флаги
-CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -O2
+CXX := g++
+CXXFLAGS := -std=c++17 -Wall -I include
 
-TARGET = longnum_test
-SRC = main.cpp BigNumber.cpp
-OBJ = $(SRC:.cpp=.o)
+.PHONY: all clean
 
-$(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJ)
+# Сборка всех целей
+all: bin/calc_pi bin/test
 
-%.o: %.cpp BigNumber.hpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+# Цель для сборки calc_pi (число пи)
+bin/calc_pi: src/calc_pi.cpp src/BigNumber.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-test: $(TARGET)
-	./$(TARGET)
+# Цель для сборки тестов/демо
+bin/test: src/main.cpp src/BigNumber.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f $(OBJ) $(TARGET)
-
-rebuild: clean $(TARGET)
+	rm -f bin/calc_pi bin/test
